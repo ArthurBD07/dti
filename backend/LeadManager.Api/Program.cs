@@ -1,82 +1,102 @@
+using LeadManager.Api.Data;
+using LeadManager.Api.Models;
+using Microsoft.EntityFrameworkCore;
 using System.IO;
 using System.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
 
-// ✅ Habilita CORS para permitir requisições do frontend (React)
+
+// CORS para permitir o React acessar a API
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
-        policy
-            .AllowAnyOrigin()   // em produção você pode restringir
-            .AllowAnyHeader()
-            .AllowAnyMethod());
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod());
 });
+
+// ⚠️ Ajuste se o nome do servidor SQL for diferente.
+// Pelo seu print do SSMS o servidor parece ser "PC-ARTHUR\Arthu" (ou parecido).
+// Olhe no SSMS, na parte de cima da árvore, e copie EXATAMENTE o nome após o "(":
+//
+// Exemplo: PC-ARTHUR\SQLEXPRESS  -> use assim:
+var connectionString =
+    "Server=localhost;Database=LeadManagerDb;Trusted_Connection=True;TrustServerCertificate=True;";
+
+
+// Registra o DbContext do EF Core usando SQL Server
+builder.Services.AddDbContext<LeadDbContext>(options =>
+    options.UseSqlServer(connectionString));
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+
 
 app.UseHttpsRedirection();
-
-// ✅ Usa CORS na aplicação
 app.UseCors();
 
-// "Banco de dados" em memória só para teste
-var leads = new List<Lead>
+// Garante que o banco existe e faz seed dos dados iniciais
+using (var scope = app.Services.CreateScope())
 {
-    new Lead
+    var db = scope.ServiceProvider.GetRequiredService<LeadDbContext>();
+
+    // Cria o banco e tabela se ainda não existirem
+    db.Database.EnsureCreated();
+
+    // Seed: só insere se ainda não tiver leads
+    if (!db.Leads.Any())
     {
-        Id = 5577421,
-        Status = "invited",
-        FirstName = "Bill",
-        LastName = "Smith",
-        CreatedAt = "January 4 @ 2:37 pm",
-        Suburb = "Yanderra 2574",
-        Category = "Painters",
-        Description = "Need to paint 2 aluminium windows and a sliding glass door",
-        Price = 62m,
-        Phone = "+61 400 000 001",
-        Email = "bill@example.com"
-    },
-    new Lead
-    {
-        Id = 5588872,
-        Status = "invited",
-        FirstName = "Craig",
-        LastName = "Johnson",
-        CreatedAt = "January 4 @ 1:15 pm",
-        Suburb = "Woolooware 2230",
-        Category = "Interior Painters",
-        Description = "internal walls 3 colours",
-        Price = 49m,
-        Phone = "+61 400 000 002",
-        Email = "craig@example.com"
+        db.Leads.AddRange(
+            new Lead
+            {
+                Id = 5577421,
+                Status = "invited",
+                FirstName = "Bill",
+                LastName = "Smith",
+                CreatedAt = "January 4 @ 2:37 pm",
+                Suburb = "Yanderra 2574",
+                Category = "Painters",
+                Description = "Need to paint 2 aluminium windows and a sliding glass door",
+                Price = 62m,
+                Phone = "+61 400 000 001",
+                Email = "bill@example.com"
+            },
+            new Lead
+            {
+                Id = 5588872,
+                Status = "invited",
+                FirstName = "Craig",
+                LastName = "Johnson",
+                CreatedAt = "January 4 @ 1:15 pm",
+                Suburb = "Woolooware 2230",
+                Category = "Interior Painters",
+                Description = "internal walls 3 colours",
+                Price = 49m,
+                Phone = "+61 400 000 002",
+                Email = "craig@example.com"
+            }
+        );
+
+        db.SaveChanges();
     }
-};
+}
 
 // Listar todos os leads invited
-app.MapGet("/leads/invited", () =>
-    leads.Where(l => l.Status == "invited")
+app.MapGet("/leads/invited", async (LeadDbContext db) =>
+    await db.Leads.Where(l => l.Status == "invited").ToListAsync()
 );
 
 // Listar todos os leads accepted
-app.MapGet("/leads/accepted", () =>
-    leads.Where(l => l.Status == "accepted")
+app.MapGet("/leads/accepted", async (LeadDbContext db) =>
+    await db.Leads.Where(l => l.Status == "accepted").ToListAsync()
 );
 
 // Aceitar lead
-app.MapPost("/leads/{id}/accept", (int id) =>
+app.MapPost("/leads/{id}/accept", async (int id, LeadDbContext db) =>
 {
-    var lead = leads.SingleOrDefault(l => l.Id == id);
+    var lead = await db.Leads.SingleOrDefaultAsync(l => l.Id == id);
     if (lead is null)
     {
         return Results.NotFound();
@@ -90,6 +110,8 @@ app.MapPost("/leads/{id}/accept", (int id) =>
 
     lead.Status = "accepted";
 
+    await db.SaveChangesAsync();
+
     // simula envio de e-mail: grava em arquivo de log
     var mensagem =
         $"[{DateTime.Now}] Lead {lead.Id} aceito por {lead.Price:C} - enviar e-mail para vendas@test.com";
@@ -99,19 +121,21 @@ app.MapPost("/leads/{id}/accept", (int id) =>
 });
 
 // Recusar lead
-app.MapPost("/leads/{id}/decline", (int id) =>
+app.MapPost("/leads/{id}/decline", async (int id, LeadDbContext db) =>
 {
-    var lead = leads.SingleOrDefault(l => l.Id == id);
+    var lead = await db.Leads.SingleOrDefaultAsync(l => l.Id == id);
     if (lead is null)
     {
         return Results.NotFound();
     }
 
     lead.Status = "declined";
+    await db.SaveChangesAsync();
+
     return Results.Ok(lead);
 });
 
-
+// Endpoint extra de WeatherForecast (opcional)
 var summaries = new[]
 {
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
@@ -136,19 +160,4 @@ app.Run();
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
-
-record Lead
-{
-    public int Id { get; init; }
-    public string Status { get; set; } = "invited"; // invited | accepted | declined
-    public string FirstName { get; init; } = default!;
-    public string LastName { get; init; } = default!;
-    public string CreatedAt { get; init; } = default!;
-    public string Suburb { get; init; } = default!;
-    public string Category { get; init; } = default!;
-    public string Description { get; init; } = default!;
-    public decimal Price { get; set; }
-    public string Phone { get; init; } = default!;
-    public string Email { get; init; } = default!;
 }

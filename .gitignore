@@ -1,24 +1,49 @@
-# Logs
-logs
+# -------------------------
+# NODE / FRONTEND
+# -------------------------
+node_modules/
+dist/
+dist-ssr/
+*.local
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# -------------------------
+# BACKEND .NET
+# -------------------------
+bin/
+obj/
+*.db
+*.db-shm
+*.db-wal
+*.mdb
+*.ldb
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
+# Arquivos de usuário
+*.user
+*.userosscache
 *.suo
-*.ntvs*
+
+# Configurações sensíveis
+*.vscode/*
+!.vscode/extensions.json
+
+# Arquivos gerados automaticamente
+emails.log
+
+# -------------------------
+# SISTEMA / IDE
+# -------------------------
+.idea/
+.DS_Store
 *.njsproj
-*.sln
+*.sln.iml
 *.sw?
+
+# Backups
+*.bak
+*.tmp
