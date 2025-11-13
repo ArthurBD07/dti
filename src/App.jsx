@@ -1,51 +1,73 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
-import { initialLeads } from "./mockLeads";
 import LeadList from "./components/LeadList";
 
 function App() {
   const [abaAtiva, setAbaAtiva] = useState("invited"); // invited | accepted
-  const [leads, setLeads] = useState(initialLeads);
+  const [leadsInvited, setLeadsInvited] = useState([]);
+  const [leadsAccepted, setLeadsAccepted] = useState([]);
 
-function handleAccept(id) {
-  setLeads((prevLeads) =>
-    prevLeads.map((lead) => {
-      if (lead.id !== id) return lead;
+  const API_URL = "http://localhost:5200";
 
-      // aplica desconto de 10% se preço > 500
-      let novoPreco = lead.price;
-      if (lead.price > 500) {
-        novoPreco = +(lead.price * 0.9).toFixed(2);
+  // Carrega os leads do backend ao iniciar
+  useEffect(() => {
+    fetch(`${API_URL}/leads/invited`)
+      .then((res) => res.json())
+      .then((data) => setLeadsInvited(data))
+      .catch((err) => console.error("Erro ao carregar invited:", err));
+
+    fetch(`${API_URL}/leads/accepted`)
+      .then((res) => res.json())
+      .then((data) => setLeadsAccepted(data))
+      .catch((err) => console.error("Erro ao carregar accepted:", err));
+  }, []);
+
+  // ACEITAR LEAD (POST no backend .NET)
+  async function handleAccept(id) {
+    try {
+      const res = await fetch(`${API_URL}/leads/${id}/accept`, {
+        method: "POST",
+      });
+
+      if (!res.ok) {
+        alert("Erro ao aceitar lead");
+        return;
       }
 
-      // DEBUG: log simples
-      console.log("Clique em Accept para o lead", lead.id);
+      const leadAtualizado = await res.json();
 
-      // simula envio de e-mail (log + alert)
-      const mensagemEmail = `[EMAIL] Enviar e-mail para vendas@empresa.com: lead ${lead.id} aceito por $${novoPreco}`;
-      console.log(mensagemEmail);
-      alert(mensagemEmail);
+      // Atualiza listas no front-end
+      setLeadsInvited((prev) => prev.filter((l) => l.id !== id));
+      setLeadsAccepted((prev) => [...prev, leadAtualizado]);
 
-      return {
-        ...lead,
-        status: "accepted",
-        price: novoPreco,
-      };
-    })
-  );
-}
-
-
-  function handleDecline(id) {
-    setLeads((prevLeads) =>
-      prevLeads.map((lead) =>
-        lead.id === id ? { ...lead, status: "declined" } : lead
-      )
-    );
+      alert(`Lead ${id} aceito com sucesso!`);
+    } catch (error) {
+      console.error(error);
+      alert("Erro inesperado ao aceitar o lead");
+    }
   }
 
-  const invitedLeads = leads.filter((lead) => lead.status === "invited");
-  const acceptedLeads = leads.filter((lead) => lead.status === "accepted");
+  // RECUSAR LEAD (POST no backend .NET)
+  async function handleDecline(id) {
+    try {
+      const res = await fetch(`${API_URL}/leads/${id}/decline`, {
+        method: "POST",
+      });
+
+      if (!res.ok) {
+        alert("Erro ao recusar lead");
+        return;
+      }
+
+      // Remove o lead recusado da lista invited
+      setLeadsInvited((prev) => prev.filter((l) => l.id !== id));
+
+      alert(`Lead ${id} recusado.`);
+    } catch (error) {
+      console.error(error);
+      alert("Erro inesperado ao recusar o lead");
+    }
+  }
 
   return (
     <div className="app">
@@ -56,12 +78,10 @@ function handleAccept(id) {
         </p>
       </header>
 
-      {/* abas no topo */}
+      {/* abas */}
       <div className="tabs-container">
         <button
-          className={
-            abaAtiva === "invited" ? "tab-header active" : "tab-header"
-          }
+          className={abaAtiva === "invited" ? "tab-header active" : "tab-header"}
           onClick={() => setAbaAtiva("invited")}
         >
           Invited
@@ -80,7 +100,7 @@ function handleAccept(id) {
       <main className="tab-content">
         {abaAtiva === "invited" && (
           <LeadList
-            leads={invitedLeads}
+            leads={leadsInvited}
             onAccept={handleAccept}
             onDecline={handleDecline}
             showContactDetails={false}
@@ -89,7 +109,7 @@ function handleAccept(id) {
 
         {abaAtiva === "accepted" && (
           <LeadList
-            leads={acceptedLeads}
+            leads={leadsAccepted}
             onAccept={null}
             onDecline={null}
             showContactDetails={true}
