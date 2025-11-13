@@ -1,5 +1,12 @@
 // src/components/LeadCard.jsx
-export default function LeadCard({ lead, onAccept, onDecline }) {
+export default function LeadCard({
+  lead,
+  onAccept,
+  onDecline,
+  showContactDetails,
+}) {
+  const fullName = `${lead.firstName} ${lead.lastName ?? ""}`.trim();
+
   return (
     <div className="lead-card">
       {/* linha do nome e data */}
@@ -7,7 +14,7 @@ export default function LeadCard({ lead, onAccept, onDecline }) {
         <div className="lead-avatar">{lead.firstName[0]}</div>
 
         <div className="lead-main-info">
-          <div className="lead-name">{lead.firstName}</div>
+          <div className="lead-name">{fullName}</div>
           <div className="lead-date">{lead.createdAt}</div>
         </div>
       </div>
@@ -22,22 +29,36 @@ export default function LeadCard({ lead, onAccept, onDecline }) {
       {/* descrição */}
       <p className="lead-description">{lead.description}</p>
 
-      {/* botões e preço */}
-      <div className="lead-actions-row">
-        <div className="lead-buttons">
-          <button
-            className="btn btn-accept"
-            onClick={() => onAccept && onAccept(lead.id)}
-          >
-            Accept
-          </button>
-          <button
-            className="btn btn-decline"
-            onClick={() => onDecline && onDecline(lead.id)}
-          >
-            Decline
-          </button>
+      {/* detalhes extras só na aba Accepted */}
+      {showContactDetails && (
+        <div className="lead-extra">
+          <p>
+            <strong>Telefone:</strong> {lead.phone}
+          </p>
+          <p>
+            <strong>E-mail:</strong> {lead.email}
+          </p>
         </div>
+      )}
+
+      {/* botões e preço – só aparecem se onAccept E onDecline existem */}
+      <div className="lead-actions-row">
+        {onAccept && onDecline && (
+          <div className="lead-buttons">
+            <button
+              className="btn btn-accept"
+              onClick={() => onAccept(lead.id)}
+            >
+              Accept
+            </button>
+            <button
+              className="btn btn-decline"
+              onClick={() => onDecline(lead.id)}
+            >
+              Decline
+            </button>
+          </div>
+        )}
 
         <div className="lead-price">
           <strong>${lead.price.toFixed(2)}</strong> Lead Invitation

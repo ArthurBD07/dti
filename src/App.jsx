@@ -7,17 +7,38 @@ function App() {
   const [abaAtiva, setAbaAtiva] = useState("invited"); // invited | accepted
   const [leads, setLeads] = useState(initialLeads);
 
-  function handleAccept(id) {
-    setLeads((prev) =>
-      prev.map((lead) =>
-        lead.id === id ? { ...lead, status: "accepted" } : lead
-      )
-    );
-  }
+function handleAccept(id) {
+  setLeads((prevLeads) =>
+    prevLeads.map((lead) => {
+      if (lead.id !== id) return lead;
+
+      // aplica desconto de 10% se preço > 500
+      let novoPreco = lead.price;
+      if (lead.price > 500) {
+        novoPreco = +(lead.price * 0.9).toFixed(2);
+      }
+
+      // DEBUG: log simples
+      console.log("Clique em Accept para o lead", lead.id);
+
+      // simula envio de e-mail (log + alert)
+      const mensagemEmail = `[EMAIL] Enviar e-mail para vendas@empresa.com: lead ${lead.id} aceito por $${novoPreco}`;
+      console.log(mensagemEmail);
+      alert(mensagemEmail);
+
+      return {
+        ...lead,
+        status: "accepted",
+        price: novoPreco,
+      };
+    })
+  );
+}
+
 
   function handleDecline(id) {
-    setLeads((prev) =>
-      prev.map((lead) =>
+    setLeads((prevLeads) =>
+      prevLeads.map((lead) =>
         lead.id === id ? { ...lead, status: "declined" } : lead
       )
     );
@@ -35,7 +56,7 @@ function App() {
         </p>
       </header>
 
-      {/* abas no estilo da imagem */}
+      {/* abas no topo */}
       <div className="tabs-container">
         <button
           className={
@@ -62,6 +83,7 @@ function App() {
             leads={invitedLeads}
             onAccept={handleAccept}
             onDecline={handleDecline}
+            showContactDetails={false}
           />
         )}
 
@@ -70,6 +92,7 @@ function App() {
             leads={acceptedLeads}
             onAccept={null}
             onDecline={null}
+            showContactDetails={true}
           />
         )}
       </main>

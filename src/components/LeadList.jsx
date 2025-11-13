@@ -1,7 +1,12 @@
 // src/components/LeadList.jsx
 import LeadCard from "./LeadCard";
 
-export default function LeadList({ leads, onAccept, onDecline }) {
+export default function LeadList({
+  leads,
+  onAccept,
+  onDecline,
+  showContactDetails,
+}) {
   if (!leads.length) {
     return <p>Não há leads nessa aba.</p>;
   }
@@ -14,6 +19,7 @@ export default function LeadList({ leads, onAccept, onDecline }) {
           lead={lead}
           onAccept={onAccept}
           onDecline={onDecline}
+          showContactDetails={showContactDetails}
         />
       ))}
     </div>
