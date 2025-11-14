@@ -20,6 +20,9 @@ namespace LeadManager.Api.Data
             modelBuilder.Entity<Lead>()
                 .Property(l => l.Id)
                 .ValueGeneratedNever();
+
+                DataSeeder.Seed(modelBuilder);
+
         }
     }
 }

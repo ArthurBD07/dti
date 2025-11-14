@@ -7,7 +7,7 @@ function App() {
   const [leadsInvited, setLeadsInvited] = useState([]);
   const [leadsAccepted, setLeadsAccepted] = useState([]);
 
-  const API_URL = "http://localhost:5200";
+  const API_URL = "http://localhost:5108";
 
   // Carrega os leads do backend ao iniciar
   useEffect(() => {
