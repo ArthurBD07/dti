@@ -1,16 +1,44 @@
-# React + Vite
+# Lead Management – Desafio DTI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicação desenvolvida para o processo seletivo de estágio na DTI.
 
-Currently, two official plugins are available:
+O sistema é composto por uma **API REST em .NET** e uma **SPA em React**, e simula o fluxo de gestão de leads de serviços: o usuário visualiza os leads convidados (*Invited*), pode **aceitar** ou **recusar** cada um, e acompanha os leads aceitos na aba *Accepted*.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Quando a aplicação é executada pela primeira vez, o backend cria o banco de dados no **SQL Server** e popula automaticamente dois leads de exemplo (Bill e Craig), ambos na aba **Invited**. A aba **Accepted** começa vazia, como pedido no desafio.
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🎯 Objetivo do Projeto
 
-## Expanding the ESLint configuration
+- Expor uma **API .NET Core 9** que:
+  - Liste leads com status `invited` e `accepted`
+  - Permita aceitar ou recusar leads
+  - Persista os dados em um banco **SQL Server** usando **Entity Framework Core**
+- Implementar uma **SPA em React** que:
+  - Mostre duas abas: **Invited** e **Accepted**
+  - Permita aceitar ou recusar leads via interface
+  - Reflita em tela as mudanças de status retornadas pela API
+- Incluir uma **camada de testes unitários** para a API.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 🛠 Tecnologias Principais
+
+- **Backend**: .NET 8, ASP.NET Core Minimal API, Entity Framework Core, SQL Server  
+- **Frontend**: React + Vite, JavaScript (ES6), CSS  
+- **Testes**: xUnit
+
+---
+
+## 🚀 Como executar o projeto
+
+### 1. Pré-requisitos
+
+- **.NET SDK 8.0 ou superior** instalado  
+- **Node.js 18+** (com `npm`)  
+- **SQL Server** (pode ser LocalDB ou SQL Server Express/Developer) em execução
+
+A conexão padrão da API usa:
+
+```text
+Server=localhost;Database=LeadManagerDb;Trusted_Connection=True;TrustServerCertificate=True;
