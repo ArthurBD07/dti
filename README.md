@@ -30,6 +30,14 @@ Quando a aplicação é executada pela primeira vez, o backend cria o banco de d
 
 ---
 
+### 🔮 Possíveis melhorias futuras
+
+- Evoluir o backend para uma estrutura completa de **CQRS** usando **MediatR**
+  para separar comandos e queries de forma mais clara.
+- Adicionar mais cenários de testes unitários e testes de integração da API.
+
+---
+
 ## 🚀 Como executar o projeto
 
 ### 1. Pré-requisitos
