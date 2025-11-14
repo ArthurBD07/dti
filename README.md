@@ -1,4 +1,4 @@
-# Lead Management – Desafio DTI
+# Gerenciamento de Leads – Desafio DTI
 
 Aplicação desenvolvida para o processo seletivo de estágio na DTI.
 
